@@ -7,6 +7,7 @@ import { Login } from './pages/login';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './config/firebase';
 import { useEffect } from 'react';
+import { Root } from './pages/Root';
 
 function App() {
 
@@ -33,7 +34,7 @@ function App() {
   return (
     <div className=' h-screen w-screen'>
         <Routes>
-          <Route path='/user' element={<Home/>}/>
+          <Route path='/user/*' element={<Root/>}/>
           <Route path='/' element={<Login/>}/>
           <Route path='/signup' element={<Signup/>}/>
         </Routes>

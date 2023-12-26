@@ -1,4 +1,4 @@
-import { IconDotsVertical, IconPlus } from '@tabler/icons-react'
+import { IconDotsVertical, IconPlus, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
 import { LogoutMenu } from '../components/menus'
 import { MainTopNav } from '../components/topNav'
@@ -8,6 +8,7 @@ import { BasicInput } from '../../components/input'
 import { LoadingScreenSimple } from '../../components/loadingScreen'
 import { createChannel, deleteChannel, getAllChannel } from '../../controlls/firebase/channel_controll'
 import { auth } from '../../config/firebase'
+import { Link } from 'react-router-dom'
 
 export default function Home() {
 
@@ -47,16 +48,7 @@ export default function Home() {
     setIsLoading(false)
   }
 
-  const onDelete = async (id)=>{
-    try {
-
-      const res = await deleteChannel(id)
-      
-    } catch (error) {
-      console.log(error)
-      alert('error deleting channel')
-    }
-  }
+  
 
 
   useEffect(
@@ -87,7 +79,7 @@ export default function Home() {
       {isLoading && <LoadingScreenSimple/> }
       <p className=' text-center text-2xl font-bold pb-3' >Channels</p>
       <div className=' fixed bottom-5 right-5'>
-        <RoundedIconButton className={'h-12 w-12'} icon={<IconPlus />} onClick={() => setShowAddChannelModal(true)} />
+        <RoundedIconButton height={50} width={50} icon={<IconPlus />} onClick={() => setShowAddChannelModal(true)} />
       </div>
 
       <SimpleModal isOpen={showaddChannelModal} onClose={() => setShowAddChannelModal(false)}>
@@ -113,7 +105,7 @@ export default function Home() {
             {
               channels.map(
                 (list, index) => (
-                  <div key={index} className=' border px-2 py-3 flex gap-2 w-full items-center cursor-pointer hover:bg-gray-100 rounded-lg'>
+                  <Link to={`/user/channel/${list.id}`} key={index} className=' border px-2 py-3 flex gap-2 w-full items-center cursor-pointer hover:bg-gray-100 rounded-lg'>
                     <div className=' bg-gray-400 min-h-[40px] max-h-[40px] min-w-[40px] max-w-[40px] rounded-full'>
                     </div>
                     <div className=' flex flex-col gap-1 overflow-hidden '>
@@ -122,7 +114,9 @@ export default function Home() {
                       </div>
                       <div className='leading-[14px] text-nowrap truncate'>{list.description}</div>
                     </div>
-                  </div>
+                    {/* delete_Button */}
+                    
+                  </Link >
                 )
               )
             }

@@ -1,6 +1,6 @@
 import React from 'react'
 import { db } from '../../config/firebase'
-import { addDoc, collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore'
+import { addDoc, collection, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore'
 
 export async function createChannel({
     channelName,
@@ -22,25 +22,36 @@ export async function createChannel({
 
 }
 
-export async function  getAllChannel() {
+export async function getAllChannel() {
 
     const q = query(collection(db, 'channels'));
     const querySnapshot = await getDocs(q);
     const item = querySnapshot.docs.map(
-        doc=>({
-            id:doc.id,
+        doc => ({
+            id: doc.id,
             ...doc.data()
         })
     )
-    
+
     return item;
 
 
 }
 
-export async function deleteChannel({id}){
+export async function getOneChannel({ id }) {
+    const docRef = doc(db, "channels", id);
+    const docSnap = await getDoc(docRef);
 
-    const res = await deleteDoc(doc(db,'channels',id));
+    return {
+        ...docSnap.data(),
+        id:docSnap.id
+    }
+}
+
+export async function deleteChannel({ id }) {
+
+    const res = await deleteDoc(doc(db, 'channels', id));
     return res;
 
 }
+
