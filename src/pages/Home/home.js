@@ -6,7 +6,7 @@ import { ButtonBasic, Buttonvarients, RoundedIconButton } from '../../components
 import SimpleModal from '../../components/Modal'
 import { BasicInput } from '../../components/input'
 import { LoadingScreenSimple } from '../../components/loadingScreen'
-import { createChannel, getAllChannel } from '../../controlls/firebase/channel_controll'
+import { createChannel, deleteChannel, getAllChannel } from '../../controlls/firebase/channel_controll'
 import { auth } from '../../config/firebase'
 
 export default function Home() {
@@ -46,6 +46,18 @@ export default function Home() {
     setShowAddChannelModal(false);
     setIsLoading(false)
   }
+
+  const onDelete = async (id)=>{
+    try {
+
+      const res = await deleteChannel(id)
+      
+    } catch (error) {
+      console.log(error)
+      alert('error deleting channel')
+    }
+  }
+
 
   useEffect(
     () => {
