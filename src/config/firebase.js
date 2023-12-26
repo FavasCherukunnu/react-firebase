@@ -17,14 +17,25 @@ import {
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAeMy59vFgYGm4Duulayhhfor3f91WzQpA",
-  authDomain: "fir-react-8b091.firebaseapp.com",
-  projectId: "fir-react-8b091",
-  storageBucket: "fir-react-8b091.appspot.com",
-  messagingSenderId: "265290227049",
-  appId: "1:265290227049:web:45fa2403305294e6dc71f8",
-  measurementId: "G-NDMW7EKB2M"
+  apiKey: process.env.REACT_APP_API_KEY,
+  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+  databaseURL:process.env.REACT_APP_DATABASE_URL,
+  projectId: process.env.REACT_APP_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_APP_ID,
+  measurementId: process.env.REACT_APP_MEASUREMENT_ID
 };
+// const firebaseConfig = {
+//   apiKey: "AIzaSyAeMy59vFgYGm4Duulayhhfor3f91WzQpA",
+//   authDomain: "fir-react-8b091.firebaseapp.com",
+//   databaseURL: "https://fir-react-8b091-default-rtdb.asia-southeast1.firebasedatabase.app",
+//   projectId: "fir-react-8b091",
+//   storageBucket: "fir-react-8b091.appspot.com",
+//   messagingSenderId: "265290227049",
+//   appId: "1:265290227049:web:45fa2403305294e6dc71f8",
+//   measurementId: "G-NDMW7EKB2M"
+// };
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
