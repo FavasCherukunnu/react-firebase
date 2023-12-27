@@ -1,6 +1,7 @@
 import React from 'react'
 import { db } from '../../config/firebase'
-import { addDoc, collection, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore'
+import { addDoc, collection, query, where, getDocs, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
+import { modelChannel } from '../../models/channelModel'
 
 export async function createChannel({
     channelName,
@@ -11,9 +12,28 @@ export async function createChannel({
     const channelDataRef = await addDoc(
         collection(db, 'channels'),
         {
-            channel_name: channelName,
-            admin: adminUid,
-            description: description
+            [modelChannel[1]]: channelName,
+            [modelChannel[3]]: adminUid,
+            [modelChannel[2]]: description
+        }
+    )
+    // console.log(channelDataRef)
+
+    return channelDataRef
+
+}
+export async function updateChannel({
+    id,
+    data={}
+}) {
+
+    const channelRef = doc(db, 'channels', id);
+
+    const channelDataRef = await setDoc(
+        channelRef,
+        data,
+        {
+            merge:true
         }
     )
     // console.log(channelDataRef)
@@ -44,7 +64,7 @@ export async function getOneChannel({ id }) {
 
     return {
         ...docSnap.data(),
-        id:docSnap.id
+        id: docSnap.id
     }
 }
 
