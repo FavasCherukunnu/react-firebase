@@ -6,7 +6,7 @@ import { BasicInput } from '../components/input'
 import { LoadingScreenSimple } from '../components/loadingScreen'
 import { auth, db } from '../config/firebase'
 import { IconBrandGoogleFilled } from '@tabler/icons-react'
-import { addDoc, collection, getDocs, query, where } from 'firebase/firestore'
+import { addDoc, collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore'
 
 export function Signup() {
 
@@ -22,12 +22,12 @@ export function Signup() {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            await addDoc(collection(db, "users"), {
+            await setDoc(doc(db, "users",user.uid), {
                 uid: user.uid,
                 name,
                 authProvider: "local",
                 email,
-            });
+            },{merge:false});
 
             if (userCredential.user) {
                 navigate('/user',{replace:true});
@@ -51,12 +51,14 @@ export function Signup() {
             const q = query(collection(db, "users"), where("uid", "==", user.uid));
             const docs = await getDocs(q);
             if (docs.docs.length === 0) {
-                await addDoc(collection(db, "users"), {
+                await setDoc(doc(db, "users",user.uid), {
                     uid: user.uid,
-                    name: user.displayName,
-                    authProvider: "google",
-                    email: user.email,
-                });
+                    name:user.displayName,
+                    authProvider: "local",
+                    email:user.email,
+                },{merge:false});
+            }else{
+                throw new Error('user already exist')
             }
 
             if (user) {

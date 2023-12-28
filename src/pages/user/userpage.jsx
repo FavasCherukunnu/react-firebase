@@ -11,6 +11,8 @@ import { getOneUser } from '../../controlls/firebase/user_controller';
 import { modelUser } from '../../models/userModel';
 import { modelMessage } from '../../models/messageModl';
 import { auth } from '../../config/firebase';
+import { readPersonalMessage, sentPersonalMessage } from '../../controlls/firebase/message_controller';
+import { PersonalMessage } from '../Home/components/messages';
 
 export function UserPage() {
     const { id } = useParams();
@@ -21,6 +23,7 @@ export function UserPage() {
     const [userName, setUserName] = useState('')
     const [userEmail, setUserEmail] = useState('');
     const [message,setMessage] = useState('')
+    const [textMessages,setTextMessages] = useState([])
     const [showUpdatedUserModal, setshowUpdatedUserModal] = useState(false)
     const [update, setUpdate] = useState(false)
     const navigate = useNavigate()
@@ -60,23 +63,26 @@ export function UserPage() {
 
     const sentMessage = async(e)=>{
         e.preventDefault();
-
+        setIsLoading(true)
         try{
 
             if(message===''){
                 throw new Error('Can not sent Empty message')
             }
 
-            // const msgData = {
-            //     [modelMessage[3]]:message,
-            //     [modelMessage[1]]:auth.currentUser.
-            // }
+            const msgRef = await sentPersonalMessage({
+                textMessage:message,
+                sentFrom:auth.currentUser.uid,
+                sentTo:user.id
+            })
+            setMessage('')
+            
 
         }catch(err){
             console.log(err)
             alert(err.message?err.message:'Error senting data')
         }
-
+        setIsLoading(false)
 
     }
 
@@ -90,10 +96,15 @@ export function UserPage() {
                         id: id
                     })
                     setUser(userD)
-                    console.log(userD)
-                    console.log(auth.currentUser)
                     setUserName(userD[modelUser[2]])
                     setUserEmail(userD[modelUser[1]])
+
+                    const textMessages = await readPersonalMessage({
+                        ofUser:id,
+                        sentFrom:auth.currentUser.uid
+                    })
+                    setTextMessages(textMessages)
+
                 } catch (error) {
                     console.log(error)
                     setIsError(true)
@@ -123,8 +134,16 @@ export function UserPage() {
 
             </div>
             <div className=' flex flex-col grow w-full bg-green-100 '>
-                <div className=' grow'>
-
+                <div className=' grow flex flex-col gap-3 px-4 py-2'>
+                    {
+                        textMessages.map(
+                            (msg,index)=>{
+                                return (
+                                    <PersonalMessage key={index} messages={msg[modelMessage[3]]} senterId={msg[modelMessage[1]]}/>
+                                )
+                            }
+                        )
+                    }
                 </div>
                 <form className=' w-full py-2 px-2 flex items-center  gap-2' onSubmit={sentMessage}>
                     <BasicInput className={'grow'} innerClass={'w-full'} placeholder={'Enter Message here'} value={message} onChange={(e)=>setMessage(e.target.value)} />
