@@ -4,7 +4,7 @@ import { deleteChannel, getOneChannel, updateChannel } from '../../controlls/fir
 import { LoadingScreenSimple } from '../../components/loadingScreen';
 import { modelChannel } from '../../models/channelModel';
 import { ButtonBasic, Buttonvarients, RoundedIconButton } from '../../components/button';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconSend, IconTrash } from '@tabler/icons-react';
 import SimpleModal, { QuestionModal } from '../../components/Modal';
 import { BasicInput } from '../../components/input';
 import { getOneUser } from '../../controlls/firebase/user_controller';
@@ -19,27 +19,27 @@ export function UserPage() {
     const [channelName, setChannelName] = useState('')
     const [channelDescription, setChannelEmail] = useState('');
     const [showUpdateChannelModal, setShowUpdateChannelModal] = useState(false)
-    const [update,setUpdate] = useState(false)
+    const [update, setUpdate] = useState(false)
     const navigate = useNavigate()
 
-    const updateUi = ()=>{
+    const updateUi = () => {
         setUpdate(!update)
     }
 
 
-    const onUpdate = async()=>{
+    const onUpdate = async () => {
         setIsLoading(true);
         try {
             const res = await updateChannel({
-                id:id,
-                data:{
-                    [modelChannel[1]]:channelName,
-                    [modelChannel[2]]:channelDescription
+                id: id,
+                data: {
+                    [modelChannel[1]]: channelName,
+                    [modelChannel[2]]: channelDescription
                 }
-            }) 
+            })
             updateUi()
             setShowUpdateChannelModal(false);
-            
+
         } catch (error) {
             console.log(error)
             setIsError(true)
@@ -48,11 +48,15 @@ export function UserPage() {
         setIsLoading(false);
     }
 
-    const closeUpdateModal = ()=>{
-        
+    const closeUpdateModal = () => {
+
         setChannelName(user[modelUser[2]])
         setChannelEmail(user[modelUser[1]])
         setShowUpdateChannelModal(false)
+    }
+
+    const sentMessage = async(e)=>{
+        e.preventDefault();
     }
 
     useEffect(
@@ -94,31 +98,40 @@ export function UserPage() {
                     </div>
 
                 }
-                <QuestionModal isOpen={deleteQuestion} className='' onClose={() => setDeleteQuestion(false)}>
-                    <div className=' min-w-72 flex flex-col'>
-                        <div className=' font-semibold'>Do you want to delete this channel?</div>
-                        <div className=' flex justify-end gap-1'>
-                            <ButtonBasic text={'No'} varients={Buttonvarients.secondary} onClick={() => setDeleteQuestion(false)} />
-                        </div>
-                    </div>
-                </QuestionModal>
-                <SimpleModal isOpen={showUpdateChannelModal} onClose={() => setShowUpdateChannelModal(false)}>
-                    <div className=' w-full '>
-                        <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 '>
-                            Update Channel
-                        </div>
-                        <div className=' px-1 md:px-4 md:py-3 flex flex-col items-center '>
-                            <BasicInput onChange={(e) => setChannelName(e.target.value)} value={channelName} className={'items-center'} title={'Channel name'} placeholder={'channel name'} />
-                            <BasicInput onChange={(e) => setChannelEmail(e.target.value)} value={channelDescription} className={'items-center'} title={'Email'} placeholder={'channel description'} />
-                        </div>
-                        <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 flex justify-end gap-2 px-2 '>
-                            <ButtonBasic varients={Buttonvarients.secondary} text={'Cancel'} onClick={closeUpdateModal} />
-                            <ButtonBasic text={'Update'} onClick={onUpdate} />
-                        </div>
-                    </div>
-                </SimpleModal>
 
             </div>
+            <div className=' flex flex-col grow w-full bg-green-100 '>
+                <div className=' grow'>
+
+                </div>
+                <form className=' w-full py-2 px-2 flex items-center  gap-2' onSubmit={sentMessage}>
+                    <BasicInput className={'grow'} innerClass={'w-full'} placeholder={'Enter Message here'} />
+                    <ButtonBasic type='submit'  icon={<IconSend/>} className={'pe-4'}/>
+                </form>
+            </div>
+            <QuestionModal isOpen={deleteQuestion} className='' onClose={() => setDeleteQuestion(false)}>
+                <div className=' min-w-72 flex flex-col'>
+                    <div className=' font-semibold'>Do you want to delete this channel?</div>
+                    <div className=' flex justify-end gap-1'>
+                        <ButtonBasic text={'No'} varients={Buttonvarients.secondary} onClick={() => setDeleteQuestion(false)} />
+                    </div>
+                </div>
+            </QuestionModal>
+            <SimpleModal isOpen={showUpdateChannelModal} onClose={() => setShowUpdateChannelModal(false)}>
+                <div className=' w-full '>
+                    <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 '>
+                        Update Channel
+                    </div>
+                    <div className=' px-1 md:px-4 md:py-3 flex flex-col items-center '>
+                        <BasicInput onChange={(e) => setChannelName(e.target.value)} value={channelName} className={'items-center'} title={'Channel name'} placeholder={'channel name'} />
+                        <BasicInput onChange={(e) => setChannelEmail(e.target.value)} value={channelDescription} className={'items-center'} title={'Email'} placeholder={'channel description'} />
+                    </div>
+                    <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 flex justify-end gap-2 px-2 '>
+                        <ButtonBasic varients={Buttonvarients.secondary} text={'Cancel'} onClick={closeUpdateModal} />
+                        <ButtonBasic text={'Update'} onClick={onUpdate} />
+                    </div>
+                </div>
+            </SimpleModal>
             {
                 isLoading && <LoadingScreenSimple />
             }

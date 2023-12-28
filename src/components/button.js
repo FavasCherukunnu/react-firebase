@@ -9,12 +9,14 @@ export function ButtonBasic({
   text,
   onClick,
   varients = Buttonvarients.primary,
-  icon
+  icon,
+  className,
+  type='button'
 }) {
   switch (varients) {
     case Buttonvarients.primary:
       return (
-        <button className=' px-3 py-1 font-bold bg-green-500 flex  hover:bg-green-600 text-white rounded shadow-sm' onClick={onClick}>
+        <button type={type} className={`px-3 py-1 font-bold bg-green-500 flex  hover:bg-green-600 text-white rounded shadow-sm ${className}`} onClick={onClick}>
           {icon && icon}
           <div>{text}</div>
         </button>
@@ -22,7 +24,7 @@ export function ButtonBasic({
 
     case Buttonvarients.secondary:
       return (
-        <button className=' px-3 py-1 font-bold border border-gray-300 flex bg-gray-100 hover:bg-gray-200 text-gray-900 rounded shadow-sm hover:shadow-md' onClick={onClick}>
+        <button type={type} className={`px-3 py-1 font-bold border border-gray-300 flex bg-gray-100 hover:bg-gray-200 text-gray-900 rounded shadow-sm hover:shadow-md ${className}`} onClick={onClick}>
           {icon && icon}
           <div>{text}</div>
         </button>
@@ -30,7 +32,7 @@ export function ButtonBasic({
 
     default:
       return (
-        <button className=' px-3 py-1 font-bold bg-green-500 flex  hover:bg-green-600 text-white rounded shadow-sm' onClick={onClick}>
+        <button type={type} className={`px-3 py-1 font-bold bg-green-500 flex  hover:bg-green-600 text-white rounded shadow-sm ${className}`} onClick={onClick}>
           {icon && icon}
           <div>{text}</div>
         </button>
