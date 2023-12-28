@@ -5,13 +5,15 @@ import { modelMessage } from "../../models/messageModl";
 export async function sentPersonalMessage({
     textMessage,
     sentFrom,
-    sentTo
+    sentTo,
+    createdAt,
 }) {
 
     const docRef = await addDoc(collection(db, "messages"), {
         [modelMessage[3]]: textMessage,
         [modelMessage[1]]: sentFrom,
-        [modelMessage[2]]: sentTo
+        [modelMessage[2]]: sentTo,
+        [modelMessage[4]]: createdAt
     });
 
     return docRef;
@@ -24,11 +26,11 @@ export async function readPersonalMessage({
     sentFrom
 }) {
     const q = query(collection(db, 'messages'),
-    orderBy(modelMessage[3],'asc'),
-     or(
-        and(where(modelMessage[1], '==', sentFrom), where(modelMessage[2], '==', ofUser)),
-        and(where(modelMessage[1], '==', ofUser), where(modelMessage[2], '==', sentFrom))
-    )
+        orderBy(modelMessage[4], 'desc'),
+        or(
+            and(where(modelMessage[1], '==', sentFrom), where(modelMessage[2], '==', ofUser)),
+            and(where(modelMessage[1], '==', ofUser), where(modelMessage[2], '==', sentFrom))
+        )
     )
     const querySnaphot = await getDocs(q);
 

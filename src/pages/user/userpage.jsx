@@ -13,6 +13,7 @@ import { modelMessage } from '../../models/messageModl';
 import { auth } from '../../config/firebase';
 import { readPersonalMessage, sentPersonalMessage } from '../../controlls/firebase/message_controller';
 import { PersonalMessage } from '../Home/components/messages';
+import { serverTimestamp } from 'firebase/firestore';
 
 export function UserPage() {
     const { id } = useParams();
@@ -73,7 +74,8 @@ export function UserPage() {
             const msgRef = await sentPersonalMessage({
                 textMessage:message,
                 sentFrom:auth.currentUser.uid,
-                sentTo:user.id
+                sentTo:user.id,
+                createdAt:serverTimestamp()
             })
             setMessage('')
             
