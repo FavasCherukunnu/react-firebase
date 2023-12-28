@@ -1,4 +1,4 @@
-import { collection, addDoc, query, where, getDocs, or, and, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, or, and, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { modelMessage } from "../../models/messageModl";
 
@@ -26,7 +26,7 @@ export async function readPersonalMessage({
     sentFrom
 }) {
     const q = query(collection(db, 'messages'),
-        orderBy(modelMessage[4], 'desc'),
+        orderBy(modelMessage[4], 'asc'),
         or(
             and(where(modelMessage[1], '==', sentFrom), where(modelMessage[2], '==', ofUser)),
             and(where(modelMessage[1], '==', ofUser), where(modelMessage[2], '==', sentFrom))
@@ -40,4 +40,31 @@ export async function readPersonalMessage({
             id: doc.id
         })
     )
+}
+
+export function readPersonalMessageSnapshot({
+    ofUser,
+    sentFrom,
+    onUpdate = (messages)=>{}
+}){
+
+    const q = query(collection(db, 'messages'),
+        orderBy(modelMessage[4], 'asc'),
+        or(
+            and(where(modelMessage[1], '==', sentFrom), where(modelMessage[2], '==', ofUser)),
+            and(where(modelMessage[1], '==', ofUser), where(modelMessage[2], '==', sentFrom))
+        )
+    )
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const messages = querySnapshot.docs.map(
+            doc=>({
+                ...doc.data(),
+                id:doc.id
+            })
+        )
+        onUpdate(messages)
+    });
+    return unsubscribe;
+
 }

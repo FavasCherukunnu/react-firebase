@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { deleteChannel, getOneChannel, updateChannel } from '../../controlls/firebase/channel_controll';
 import { LoadingScreenSimple } from '../../components/loadingScreen';
@@ -11,7 +11,7 @@ import { getOneUser } from '../../controlls/firebase/user_controller';
 import { modelUser } from '../../models/userModel';
 import { modelMessage } from '../../models/messageModl';
 import { auth } from '../../config/firebase';
-import { readPersonalMessage, sentPersonalMessage } from '../../controlls/firebase/message_controller';
+import { readPersonalMessage, readPersonalMessageSnapshot, sentPersonalMessage } from '../../controlls/firebase/message_controller';
 import { PersonalMessage } from '../Home/components/messages';
 import { serverTimestamp } from 'firebase/firestore';
 
@@ -23,14 +23,20 @@ export function UserPage() {
     const [deleteQuestion, setDeleteQuestion] = useState(false)
     const [userName, setUserName] = useState('')
     const [userEmail, setUserEmail] = useState('');
-    const [message,setMessage] = useState('')
-    const [textMessages,setTextMessages] = useState([])
+    const [message, setMessage] = useState('')
+    const [textMessages, setTextMessages] = useState([])
     const [showUpdatedUserModal, setshowUpdatedUserModal] = useState(false)
     const [update, setUpdate] = useState(false)
+    const chatRef = useRef(null);
+    const [scroll,setScroll] = useState(false)
     const navigate = useNavigate()
 
     const updateUi = () => {
         setUpdate(!update)
+    }
+
+    const scrollToBottom = ()=>{
+        setScroll(!scroll)
     }
 
 
@@ -62,35 +68,40 @@ export function UserPage() {
         setshowUpdatedUserModal(false)
     }
 
-    const sentMessage = async(e)=>{
+    const sentMessage = async (e) => {
         e.preventDefault();
         setIsLoading(true)
-        try{
+        try {
 
-            if(message===''){
+            if (message === '') {
                 throw new Error('Can not sent Empty message')
             }
 
             const msgRef = await sentPersonalMessage({
-                textMessage:message,
-                sentFrom:auth.currentUser.uid,
-                sentTo:user.id,
-                createdAt:serverTimestamp()
+                textMessage: message,
+                sentFrom: auth.currentUser.uid,
+                sentTo: user.id,
+                createdAt: serverTimestamp()
             })
             setMessage('')
-            
 
-        }catch(err){
+
+        } catch (err) {
             console.log(err)
-            alert(err.message?err.message:'Error senting data')
+            alert(err.message ? err.message : 'Error senting data')
         }
         setIsLoading(false)
 
     }
 
+    const scrollToEnd = ()=>{
+        console.log('scrolling to bottom')
+        chatRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+
     useEffect(
         () => {
-
+            let unSubscribeTextMessages = () => { }
             const loadChannel = async () => {
                 setIsLoading(true)
                 try {
@@ -101,27 +112,44 @@ export function UserPage() {
                     setUserName(userD[modelUser[2]])
                     setUserEmail(userD[modelUser[1]])
 
-                    const textMessages = await readPersonalMessage({
-                        ofUser:id,
-                        sentFrom:auth.currentUser.uid
+                    unSubscribeTextMessages = readPersonalMessageSnapshot({
+                        ofUser: id,
+                        sentFrom: auth.currentUser.uid,
+                        onUpdate: (messages) => {
+                            setTextMessages(messages)
+                            scrollToBottom()
+                        }
                     })
-                    setTextMessages(textMessages)
+
+                    // setTextMessages(textMessages)
 
                 } catch (error) {
                     console.log(error)
                     setIsError(true)
                     alert('error loading channel')
                 }
+                scrollToEnd();
                 setIsLoading(false)
             }
 
             loadChannel()
 
+            return () => {
+                unSubscribeTextMessages()
+            }
+
         }, [update]
     )
 
+    useEffect(
+        ()=>{
+            scrollToEnd();
+        },
+        [scroll]
+    )
+
     return (
-        <div className=' h-screen w-screen bg-green-50 flex flex-col '>
+        <div className=' h-screen w-screen bg-green-50 flex flex-col overflow-hidden '>
             <div className=' w-full min-h-16 bg-green-500 py-2 px-3 flex flex-col'>
                 {
                     isLoading === false &&
@@ -135,21 +163,23 @@ export function UserPage() {
                 }
 
             </div>
-            <div className=' flex flex-col grow w-full bg-green-100 '>
-                <div className=' grow flex flex-col gap-3 px-4 py-2'>
-                    {
-                        textMessages.map(
-                            (msg,index)=>{
-                                return (
-                                    <PersonalMessage key={index} messages={msg[modelMessage[3]]} senterId={msg[modelMessage[1]]}/>
-                                )
-                            }
-                        )
-                    }
+            <div className=' flex flex-col grow w-full bg-green-100 overflow-hidden '>
+                <div className=' grow flex flex-col  overflow-auto'>
+                    <div ref={chatRef}  className='w-full flex flex-col  grow justify-end  px-3 py-2 gap-2  '>
+                        {
+                            textMessages.map(
+                                (msg, index) => {
+                                    return (
+                                        <PersonalMessage key={index} messages={msg[modelMessage[3]]} senterId={msg[modelMessage[1]]} />
+                                    )
+                                }
+                            )
+                        }
+                    </div>
                 </div>
                 <form className=' w-full py-2 px-2 flex items-center  gap-2' onSubmit={sentMessage}>
-                    <BasicInput className={'grow'} innerClass={'w-full'} placeholder={'Enter Message here'} value={message} onChange={(e)=>setMessage(e.target.value)} />
-                    <ButtonBasic type='submit'  icon={<IconSend/>} className={'pe-4'}/>
+                    <BasicInput className={'grow'} innerClass={'w-full'} placeholder={'Enter Message here'} value={message} onChange={(e) => setMessage(e.target.value)} />
+                    <ButtonBasic type='submit' icon={<IconSend />} className={'pe-4'} />
                 </form>
             </div>
             <QuestionModal isOpen={deleteQuestion} className='' onClose={() => setDeleteQuestion(false)}>
