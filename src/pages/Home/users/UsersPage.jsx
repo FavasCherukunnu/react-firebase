@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom'
 import { getAllChannel } from '../../../controlls/firebase/channel_controll';
 import { auth } from '../../../config/firebase';
 import { LoadingScreenSimple } from '../../../components/loadingScreen';
-import { getAllUsers } from '../../../controlls/firebase/user_controller';
+import { getAllOtherUsers, getAllUsers } from '../../../controlls/firebase/user_controller';
 import { modelUser } from '../../../models/userModel';
 
 export function UsersPage() {
 
     const [isLoading, setIsLoading] = useState(false)
-    const [channelName, setChannelName] = useState('')
-    const [channelDescription, setChannelDescription] = useState('');
     const [users, setUsers] = useState([])
     const [update, setUpdate] = useState(false)
 
@@ -28,7 +26,7 @@ export function UsersPage() {
                 setIsLoading(true)
                 try {
 
-                    const users = await getAllUsers({OwnId:''});
+                    const users = await getAllOtherUsers({ OwnId: auth.currentUser?.uid });
                     setUsers(users)
                 } catch (error) {
                     console.log(error);
@@ -36,6 +34,7 @@ export function UsersPage() {
                 }
                 setIsLoading(false)
             }
+
 
             loadUsers()
 
@@ -50,7 +49,7 @@ export function UsersPage() {
             {isLoading && <LoadingScreenSimple />}
             {
                 users.map(
-                    (list,index) => (
+                    (list, index) => (
                         <Link to={`/user/user/${list.id}`} key={index} className=' border px-2 py-3 flex gap-2 w-full items-center cursor-pointer hover:bg-gray-100 rounded-lg'>
                             <div className=' bg-gray-400 min-h-[40px] max-h-[40px] min-w-[40px] max-w-[40px] rounded-full'>
                             </div>

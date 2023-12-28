@@ -40,26 +40,7 @@ export function UserPage() {
     }
 
 
-    const onUpdate = async () => {
-        setIsLoading(true);
-        try {
-            const res = await updateChannel({
-                id: id,
-                data: {
-                    [modelChannel[1]]: userName,
-                    [modelChannel[2]]: userEmail
-                }
-            })
-            updateUi()
-            setshowUpdatedUserModal(false);
 
-        } catch (error) {
-            console.log(error)
-            setIsError(true)
-            alert('error updating channel')
-        }
-        setIsLoading(false);
-    }
 
     const closeUpdateModal = () => {
 
@@ -94,10 +75,6 @@ export function UserPage() {
 
     }
 
-    const scrollToEnd = () => {
-        chatRef.current.scrollTop = chatRef.current.scrollHeight
-    }
-
     useEffect(
         () => {
             let unSubscribeTextMessages = () => { }
@@ -111,23 +88,12 @@ export function UserPage() {
                     setUserName(userD[modelUser[2]])
                     setUserEmail(userD[modelUser[1]])
 
-                    unSubscribeTextMessages = readPersonalMessageSnapshot({
-                        ofUser: id,
-                        sentFrom: auth.currentUser.uid,
-                        onUpdate: (messages) => {
-                            setTextMessages(messages)
-                            scrollToBottom()
-                        }
-                    })
-
-                    // setTextMessages(textMessages)
 
                 } catch (error) {
                     console.log(error)
                     setIsError(true)
                     alert('error loading channel')
                 }
-                scrollToEnd();
                 setIsLoading(false)
             }
 
@@ -142,10 +108,26 @@ export function UserPage() {
 
     useEffect(
         () => {
-            scrollToEnd();
-        },
-        [scroll]
+            let unSubscribeTextMessages = () => { };
+            if (auth.currentUser?.uid) {
+                unSubscribeTextMessages = readPersonalMessageSnapshot({
+                    ofUser: id,
+                    sentFrom: auth.currentUser.uid,
+                }, (messages) => {
+                    setTextMessages(messages)
+
+                })
+            }
+            return () => unSubscribeTextMessages();
+        }, [auth.currentUser?.uid]
     )
+
+    useEffect(
+        () => {
+            chatRef.current.scrollTop = chatRef.current.scrollHeight
+        }, [textMessages.length]
+    )
+
 
     return (
         <div className=' h-screen w-screen bg-green-50 flex flex-col overflow-hidden '>
@@ -155,8 +137,8 @@ export function UserPage() {
                     <div className=' flex gap-2 items-center'>
                         <div className=' min-h-12 max-h-12 min-w-12 max-w-12 bg-gray-300 rounded-full'></div>
                         <div className=' text-lg font-bold text-gray-50 grow overflow-hidden truncate'>{user[modelUser[2]]}</div>
-                        <RoundedIconButton icon={<IconEdit />} varient={Buttonvarients.secondary} onClick={() => setshowUpdatedUserModal(true)} />
-                        <RoundedIconButton icon={<IconTrash />} varient={Buttonvarients.secondary} onClick={() => setDeleteQuestion(true)} />
+                        {/* <RoundedIconButton icon={<IconEdit />} varient={Buttonvarients.secondary} onClick={() => setshowUpdatedUserModal(true)} /> */}
+                        {/* <RoundedIconButton icon={<IconTrash />} varient={Buttonvarients.secondary} onClick={() => setDeleteQuestion(true)} /> */}
                     </div>
 
                 }
@@ -198,10 +180,10 @@ export function UserPage() {
                         <BasicInput onChange={(e) => setUserName(e.target.value)} value={userName} className={'items-center'} title={'Channel name'} placeholder={'channel name'} />
                         <BasicInput onChange={(e) => setUserEmail(e.target.value)} value={userEmail} className={'items-center'} title={'Email'} placeholder={'channel description'} />
                     </div>
-                    <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 flex justify-end gap-2 px-2 '>
+                    {/* <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 flex justify-end gap-2 px-2 '>
                         <ButtonBasic varients={Buttonvarients.secondary} text={'Cancel'} onClick={closeUpdateModal} />
                         <ButtonBasic text={'Update'} onClick={onUpdate} />
-                    </div>
+                    </div> */}
                 </div>
             </SimpleModal>
             {

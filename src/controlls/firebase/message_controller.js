@@ -45,8 +45,8 @@ export async function readPersonalMessage({
 export function readPersonalMessageSnapshot({
     ofUser,
     sentFrom,
-    onUpdate = (messages)=>{}
-}){
+
+}, onUpdate = (messages) => { }) {
 
     const q = query(collection(db, 'messages'),
         orderBy(modelMessage[4], 'asc'),
@@ -58,9 +58,9 @@ export function readPersonalMessageSnapshot({
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const messages = querySnapshot.docs.map(
-            doc=>({
+            doc => ({
                 ...doc.data(),
-                id:doc.id
+                id: doc.id
             })
         )
         onUpdate(messages)

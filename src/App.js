@@ -6,12 +6,13 @@ import Home from './pages/Home/home';
 import { Login } from './pages/login';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './config/firebase';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Root } from './pages/Root';
 
 function App() {
 
   const navigate = useNavigate()
+  const [loadedUser,setLoadedUser] = useState(false)
 
   useEffect(
     ()=>{
@@ -20,7 +21,7 @@ function App() {
           // User is signed in, see docs for a list of available properties
           // https://firebase.google.com/docs/reference/js/auth.user
           const uid = user.uid;
-          
+          setLoadedUser(true)
           // ...
         } else {
           navigate('/',{replace:true})
@@ -34,7 +35,7 @@ function App() {
   return (
     <div className=' h-screen w-screen'>
         <Routes>
-          <Route path='/user/*' element={<Root/>}/>
+          {loadedUser&&<Route path='/user/*' element={<Root/>}/>}
           <Route path='/' element={<Login/>}/>
           <Route path='/signup' element={<Signup/>}/>
         </Routes>
