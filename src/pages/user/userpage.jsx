@@ -28,14 +28,14 @@ export function UserPage() {
     const [showUpdatedUserModal, setshowUpdatedUserModal] = useState(false)
     const [update, setUpdate] = useState(false)
     const chatRef = useRef(null);
-    const [scroll,setScroll] = useState(false)
+    const [scroll, setScroll] = useState(false)
     const navigate = useNavigate()
 
     const updateUi = () => {
         setUpdate(!update)
     }
 
-    const scrollToBottom = ()=>{
+    const scrollToBottom = () => {
         setScroll(!scroll)
     }
 
@@ -94,9 +94,8 @@ export function UserPage() {
 
     }
 
-    const scrollToEnd = ()=>{
-        console.log('scrolling to bottom')
-        chatRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToEnd = () => {
+        chatRef.current.scrollTop = chatRef.current.scrollHeight
     }
 
     useEffect(
@@ -142,7 +141,7 @@ export function UserPage() {
     )
 
     useEffect(
-        ()=>{
+        () => {
             scrollToEnd();
         },
         [scroll]
@@ -164,8 +163,8 @@ export function UserPage() {
 
             </div>
             <div className=' flex flex-col grow w-full bg-green-100 overflow-hidden '>
-                <div className=' grow flex flex-col  overflow-auto'>
-                    <div ref={chatRef}  className='w-full flex flex-col  grow justify-end  px-3 py-2 gap-2  '>
+                <div ref={chatRef} className=' grow flex flex-col  overflow-auto'>
+                    <div className='w-full flex flex-col  grow justify-end  px-3 py-2 gap-2  '>
                         {
                             textMessages.map(
                                 (msg, index) => {
