@@ -1,4 +1,4 @@
-const modelMessage = [
+export const modelMessage = [
     'id',
     'sent_from',
     'sent_to',
