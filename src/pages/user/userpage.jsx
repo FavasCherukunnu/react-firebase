@@ -130,7 +130,13 @@ export function UserPage() {
 
 
     return (
-        <div className=' h-screen w-screen bg-green-50 flex flex-col overflow-hidden '>
+        <div style={{
+            position:'fixed',
+            top:'0',
+            bottom:'0',
+            left:'0',
+            right:'0'
+        }} className=' bg-green-50 flex flex-col overflow-hidden '>
             <div className=' w-full min-h-16 bg-green-500 py-2 px-3 flex flex-col'>
                 {
                     isLoading === false &&
