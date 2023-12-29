@@ -1,6 +1,6 @@
 export const modelChannelMembers = [
     'id',
     'user_id',
-    'channel_name',
+    'channel_id',
     'created_at'
 ]

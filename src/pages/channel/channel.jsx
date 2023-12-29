@@ -4,12 +4,13 @@ import { deleteChannel, getOneChannel, updateChannel } from '../../controlls/fir
 import { LoadingScreenSimple } from '../../components/loadingScreen';
 import { modelChannel } from '../../models/channelModel';
 import { ButtonBasic, Buttonvarients, RoundedIconButton } from '../../components/button';
-import { IconEdit, IconSend, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import { IconDetails, IconEdit, IconInfoCircle, IconSend, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import SimpleModal, { QuestionModal } from '../../components/Modal';
 import { BasicInput, SelectBoxInputBox } from '../../components/input';
 import { getAllOtherUsers } from '../../controlls/firebase/user_controller';
 import { auth } from '../../config/firebase';
 import { modelUser } from '../../models/userModel';
+import { addOneMemberToGroup } from '../../controlls/firebase/group_controller';
 
 export function ChannelPage() {
     const { id } = useParams();
@@ -20,11 +21,11 @@ export function ChannelPage() {
     const [channelName, setChannelName] = useState('')
     const [channelDescription, setChannelDescription] = useState('');
     const [showUpdateChannelModal, setShowUpdateChannelModal] = useState(false)
-    const [showAddUsersModal,setShowAddUsersModal] = useState(false)
+    const [showAddUsersModal, setShowAddUsersModal] = useState(false)
     const [update, setUpdate] = useState(false)
     const [message, setMessage] = useState('');
-    const [searchUser,setSearchUser] = useState(null)
-    const [searchUserList,setSearchUserList] = useState([])
+    const [searchUser, setSearchUser] = useState(null)
+    const [searchUserList, setSearchUserList] = useState([])
     const navigate = useNavigate()
 
     const updateUi = () => {
@@ -46,7 +47,11 @@ export function ChannelPage() {
         }
         setIsLoading(false)
     }
-
+    const closeAddUserModal = () => {
+        setSearchUser(null)
+        setShowAddUsersModal(false)
+    
+    }
     const onUpdate = async () => {
         setIsLoading(true);
         try {
@@ -68,6 +73,30 @@ export function ChannelPage() {
         setIsLoading(false);
     }
 
+    const onAddUser = async () => {
+
+        setIsLoading(true)
+        try {
+            if (searchUser) {
+                const ref = await addOneMemberToGroup({
+                    userId: searchUser.id,
+                    channelId: id
+                })
+            } else {
+                throw new Error('Please Select a user');
+            }
+
+            closeAddUserModal()
+
+        } catch (error) {
+            console.log(error)
+            setIsError(true)
+            alert(error.message ? error.message : 'Error adding user')
+        }
+        setIsLoading(false)
+
+    }
+
     const closeUpdateModal = () => {
 
         setChannelName(channel[modelChannel[1]])
@@ -75,11 +104,9 @@ export function ChannelPage() {
         setShowUpdateChannelModal(false)
     }
 
-    const closeAddUserModal = ()=>{
-        setShowAddUsersModal(false)
-    }
 
-    const sentMessage =()=>{
+
+    const sentMessage = () => {
 
     }
 
@@ -110,22 +137,22 @@ export function ChannelPage() {
 
     //SEARCH USERS
     useEffect(
-        ()=>{
+        () => {
 
-            const loadSearchUsers = async ()=>{
+            const loadSearchUsers = async () => {
 
                 setIsLoading(true)
 
                 const users = await getAllOtherUsers({
-                    OwnId:auth.currentUser.uid
+                    OwnId: auth.currentUser.uid
                 })
 
                 setSearchUserList(
                     users.map(
-                        user=>({
-                            id:user[modelUser[0]],
-                            name:user[modelUser[2]],
-                            email:user[modelUser[1]]
+                        user => ({
+                            id: user[modelUser[0]],
+                            name: user[modelUser[2]],
+                            email: user[modelUser[1]]
                         })
                     )
                 )
@@ -134,13 +161,13 @@ export function ChannelPage() {
             }
 
 
-            if(showAddUsersModal){
+            if (showAddUsersModal) {
 
                 loadSearchUsers();
 
             }
 
-        },[showAddUsersModal]
+        }, [showAddUsersModal]
     )
 
     return (
@@ -158,8 +185,9 @@ export function ChannelPage() {
                         <div className=' min-h-12 max-h-12 min-w-12 max-w-12 bg-gray-300 rounded-full'></div>
                         <div className=' text-lg font-bold text-gray-50 grow overflow-hidden truncate'>{channel[modelChannel[1]]}</div>
                         <RoundedIconButton icon={<IconUserPlus />} varient={Buttonvarients.secondary} onClick={() => setShowAddUsersModal(true)} />
-                        <RoundedIconButton icon={<IconEdit />} varient={Buttonvarients.secondary} onClick={() => setShowUpdateChannelModal(true)} />
+                        {/* <RoundedIconButton icon={<IconEdit />} varient={Buttonvarients.secondary} onClick={() => setShowUpdateChannelModal(true)} /> */}
                         <RoundedIconButton icon={<IconTrash />} varient={Buttonvarients.secondary} onClick={() => setDeleteQuestion(true)} />
+                        <RoundedIconButton icon={<IconInfoCircle />} varient={Buttonvarients.secondary} onClick={() => navigate(`../channelDetails/${id}`)} />
                     </div>
 
                 }
@@ -168,7 +196,7 @@ export function ChannelPage() {
             <div className=' flex flex-col grow w-full bg-green-100 overflow-hidden '>
                 <div className=' grow flex flex-col  overflow-auto'>
                     <div className='w-full flex flex-col  grow justify-end  px-3 py-2 gap-2  '>
-                        
+
                     </div>
                 </div>
                 <form className=' w-full py-2 px-2 flex items-center  gap-2' onSubmit={sentMessage}>
@@ -207,11 +235,11 @@ export function ChannelPage() {
                     </div>
                     <div className=' px-1 md:px-4 md:py-3 flex flex-col items-center '>
                         {/* <BasicInput onChange={(e) => setSearchUser(e.target.value)} value={searchUser} className={'items-center'} title={'Users'} placeholder={'Search Users'} /> */}
-                        <SelectBoxInputBox option={searchUserList} value={searchUser} onChange={(value)=>setSearchUser(value)}/>
+                        <SelectBoxInputBox option={searchUserList} value={searchUser} onChange={(value) => setSearchUser(value)} />
                     </div>
                     <div className='title  py-1 text-md font-bold border-b shadow-sm text-center bg-green-100 flex justify-end gap-2 px-2 '>
                         <ButtonBasic varients={Buttonvarients.secondary} text={'Cancel'} onClick={closeAddUserModal} />
-                        <ButtonBasic text={'Add'} onClick={onUpdate} />
+                        <ButtonBasic text={'Add'} onClick={onAddUser} />
                     </div>
                 </div>
             </SimpleModal>
