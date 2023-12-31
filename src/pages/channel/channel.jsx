@@ -1,21 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { deleteChannel, getOneChannel, updateChannel } from '../../controlls/firebase/channel_controll';
-import { LoadingScreenSimple } from '../../components/loadingScreen';
-import { modelChannel } from '../../models/channelModel';
-import { ButtonBasic, Buttonvarients, RoundedIconButton } from '../../components/button';
-import { IconDetails, IconEdit, IconInfoCircle, IconSend, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import { IconInfoCircle, IconSend, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import SimpleModal, { QuestionModal } from '../../components/Modal';
+import { ButtonBasic, Buttonvarients, RoundedIconButton } from '../../components/button';
 import { BasicInput, SelectBoxInputBox } from '../../components/input';
-import { getAllOtherUsers } from '../../controlls/firebase/user_controller';
+import { LoadingScreenSimple } from '../../components/loadingScreen';
 import { auth } from '../../config/firebase';
+import { deleteChannel, getOneChannel, updateChannel } from '../../controlls/firebase/channel_controll';
+import { addOneMemberToGroup, getAllGroupMembersObj } from '../../controlls/firebase/group_controller';
+import { readGroupMessageSnapshot, sentGroupMessage } from '../../controlls/firebase/group_message_controller';
+import { getAllOtherUsers } from '../../controlls/firebase/user_controller';
+import { modelChannel } from '../../models/channelModel';
 import { modelUser } from '../../models/userModel';
-import { addOneMemberToGroup } from '../../controlls/firebase/group_controller';
+import { GroupMessage, PersonalMessage } from '../Home/components/messages';
+import { modelGroupMessage } from '../../models/grpMessageModel';
 
 export function ChannelPage() {
     const { id } = useParams();
     const [channel, setChannel] = useState({})
     const [isLoading, setIsLoading] = useState(true)
+    const chatRef = useRef(null);
+
     const [isError, setIsError] = useState(false)
     const [deleteQuestion, setDeleteQuestion] = useState(false)
     const [channelName, setChannelName] = useState('')
@@ -25,7 +30,10 @@ export function ChannelPage() {
     const [update, setUpdate] = useState(false)
     const [message, setMessage] = useState('');
     const [searchUser, setSearchUser] = useState(null)
-    const [searchUserList, setSearchUserList] = useState([])
+    const [searchUserList, setSearchUserList] = useState([]);
+    const [textMessages, setTextMessages] = useState([])
+
+    const [members, setMembers] = useState({})
     const navigate = useNavigate()
 
     const updateUi = () => {
@@ -50,7 +58,7 @@ export function ChannelPage() {
     const closeAddUserModal = () => {
         setSearchUser(null)
         setShowAddUsersModal(false)
-    
+
     }
     const onUpdate = async () => {
         setIsLoading(true);
@@ -106,7 +114,27 @@ export function ChannelPage() {
 
 
 
-    const sentMessage = () => {
+    const sentMessage = async (e) => {
+        e.preventDefault();
+        setIsLoading(true)
+        try {
+
+            if (message !== '') {
+                const grpMsgRef = await sentGroupMessage({
+                    sentFrom: auth.currentUser.uid,
+                    groupId: id,
+                    textMessage: message
+                })
+
+            } else {
+                throw new Error('please enter message first')
+            }
+            setMessage('')
+        } catch (err) {
+            console.log(err);
+            alert(err.message ? err.message : 'error senting message')
+        }
+        setIsLoading(false)
 
     }
 
@@ -119,18 +147,33 @@ export function ChannelPage() {
                     const channel = await getOneChannel({
                         id: id
                     })
+                    const members = await getAllGroupMembersObj({
+                        groupId: id
+                    })
+                    setMembers(members)
                     setChannel(channel)
                     setChannelName(channel[modelChannel[1]])
                     setChannelDescription(channel[modelChannel[2]])
                 } catch (error) {
                     console.log(error)
                     setIsError(true)
+                    navigate('/')
                     alert('error loading channel')
                 }
                 setIsLoading(false)
             }
 
             loadChannel()
+
+            let unSubscribeTextMessages = () => { };
+            if (auth.currentUser?.uid) {
+                unSubscribeTextMessages = readGroupMessageSnapshot({
+                    groupId: id
+                }, (messages) => {
+                    setTextMessages(messages)
+                })
+            }
+            return () => unSubscribeTextMessages();
 
         }, [update]
     )
@@ -170,6 +213,12 @@ export function ChannelPage() {
         }, [showAddUsersModal]
     )
 
+    useEffect(
+        () => {
+            chatRef.current.scrollTop = chatRef.current.scrollHeight
+        }, [textMessages.length]
+    )
+
     return (
         <div style={{
             position: 'fixed',
@@ -194,9 +243,23 @@ export function ChannelPage() {
 
             </div>
             <div className=' flex flex-col grow w-full bg-green-100 overflow-hidden '>
-                <div className=' grow flex flex-col  overflow-auto'>
+                <div ref={chatRef} className=' grow flex flex-col  overflow-auto'>
                     <div className='w-full flex flex-col  grow justify-end  px-3 py-2 gap-2  '>
+                        {
+                            isLoading===false&&textMessages.map(
+                                (msg, index) => {
 
+                                    let name = 'unknown'
+                                    const user = members[msg[modelGroupMessage[1]]];
+                                    if(user){
+                                       name =  user[[modelUser[2]]]
+                                    }
+                                    return (
+                                        <GroupMessage key={index} messages={msg[modelGroupMessage[3]]} senterId={msg[modelGroupMessage[1]]} senterName={name} />
+                                    )
+                                }
+                            )
+                        }
                     </div>
                 </div>
                 <form className=' w-full py-2 px-2 flex items-center  gap-2' onSubmit={sentMessage}>

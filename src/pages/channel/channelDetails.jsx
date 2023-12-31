@@ -18,7 +18,6 @@ export function ChannelDetails() {
         setIsLoading(true)
         try {
           const members = await getAllGroupMembers ({
-            ownId: auth.currentUser.uid,
             groupId: id
           })
           setGroupUsers(members)

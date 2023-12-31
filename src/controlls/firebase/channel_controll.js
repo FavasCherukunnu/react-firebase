@@ -1,7 +1,8 @@
-import React from 'react'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { addDoc, collection, query, where, getDocs, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
 import { modelChannel } from '../../models/channelModel'
+import { getuserGroupIdsObj } from './group_controller'
+import { modelChannelMembers } from '../../models/channelMembers'
 
 export async function createChannel({
     channelName,
@@ -54,6 +55,39 @@ export async function getAllChannel() {
     )
 
     return item;
+
+
+}
+
+export async function getUserChannels({
+    userId
+}) {
+
+    const q = query(collection(db, 'channels'));
+    const querySnapshot = await getDocs(q);
+    const AllChannels = querySnapshot.docs.map(
+        doc => ({
+            id: doc.id,
+            ...doc.data()
+        })
+    )
+    const grpIds = await getuserGroupIdsObj({userId:userId});
+
+    const userChannels = []
+    AllChannels.forEach(
+        channel=>{
+            if(grpIds.hasOwnProperty(channel.id)){
+                userChannels.push({
+                    ...channel,
+                    [modelChannelMembers[4]]:grpIds[channel.id][modelChannelMembers[4]]
+                })
+            }
+            return false;
+        }
+    )
+
+    return userChannels;
+
 
 
 }

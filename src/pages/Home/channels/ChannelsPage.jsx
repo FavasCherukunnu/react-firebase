@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createChannel, getAllChannel } from "../../../controlls/firebase/channel_controll";
+import { createChannel, getAllChannel, getUserChannels } from "../../../controlls/firebase/channel_controll";
 import { auth } from "../../../config/firebase";
 import { MainTopNav } from "../../components/topNav";
 import { LoadingScreenSimple } from "../../../components/loadingScreen";
@@ -65,7 +65,9 @@ export function ChannelsPage() {
         setIsLoading(true)
         try {
 
-          const channels = await getAllChannel();
+          const channels = await getUserChannels({
+            userId:auth.currentUser.uid
+          });
           setChannels(channels)
         } catch (error) {
           console.log(error);
