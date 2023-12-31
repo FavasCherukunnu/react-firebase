@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { getOtherGroupMembers } from '../../controlls/firebase/group_controller'
+import { getAllGroupMembers, getOtherGroupMembers } from '../../controlls/firebase/group_controller'
 import { auth } from '../../config/firebase'
 import { Link, useParams } from 'react-router-dom'
 import { UserPage } from '../user/userpage';
 import { modelUser } from '../../models/userModel';
 import { LoadingScreenSimple } from '../../components/loadingScreen';
+import { modelChannelMembers } from '../../models/channelMembers';
 
 export function ChannelDetails() {
   const { id } = useParams();
@@ -16,7 +17,7 @@ export function ChannelDetails() {
       const loadUsers = async () => {
         setIsLoading(true)
         try {
-          const members = await getOtherGroupMembers({
+          const members = await getAllGroupMembers ({
             ownId: auth.currentUser.uid,
             groupId: id
           })
@@ -52,7 +53,7 @@ export function ChannelDetails() {
         {
           groupUsers.map(
             (list, index) => (
-              <Link to={`/user/user/${list.id}`} key={index} className=' border px-2 py-3 flex gap-2 w-full items-center cursor-pointer hover:bg-gray-100 rounded-lg'>
+              <Link to={`/user/user/${list.id}`} key={index} className={` border px-2 py-3 flex gap-2 w-full items-center cursor-pointer rounded-lg ${list[modelChannelMembers[4]]?'bg-green-200 hover:bg-green-300':'hover:bg-gray-100 '}`}>
                 <div className=' bg-gray-400 min-h-[40px] max-h-[40px] min-w-[40px] max-w-[40px] rounded-full'>
                 </div>
                 <div className=' flex flex-col gap-1 overflow-hidden '>
