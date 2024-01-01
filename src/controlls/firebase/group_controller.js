@@ -9,14 +9,28 @@ import { modelGroupMessage } from "../../models/grpMessageModel";
 export async function addOneMemberToGroup({
     userId,
     channelId,
-    isAdmin=false
+    isAdmin = false
 }) {
 
+    const q = query(collection(db, "channelMembers"), where(modelChannelMembers[2], "==", channelId), where(modelChannelMembers[1], '==', userId));
+    const querySnapshot = await getDocs(q);
+    const nowMembers = querySnapshot.docs.map(
+        doc=>({
+            id:doc.id,
+            ...doc.data()
+        })
+    )
+
+    if(nowMembers.length>0){
+        throw new Error('User already exist')
+        return {};
+    }
+
     const grpMemRef = await addDoc(collection(db, "channelMembers"), {
-        [modelChannelMembers[1]]:userId,
-        [modelChannelMembers[2]]:channelId,
-        [modelChannelMembers[4]]:isAdmin,
-        [modelChannelMembers[3]]:serverTimestamp(),
+        [modelChannelMembers[1]]: userId,
+        [modelChannelMembers[2]]: channelId,
+        [modelChannelMembers[4]]: isAdmin,
+        [modelChannelMembers[3]]: serverTimestamp(),
     });
 
     return grpMemRef;
@@ -26,45 +40,45 @@ export async function addOneMemberToGroup({
 export async function getOtherGroupMembers({
     ownId,
     groupId
-}){
+}) {
 
-    const q = query(collection(db,'channelMembers'),where(modelChannelMembers[2],'==',groupId),where(modelChannelMembers[1],'!=',ownId))
+    const q = query(collection(db, 'channelMembers'), where(modelChannelMembers[2], '==', groupId), where(modelChannelMembers[1], '!=', ownId))
     const querySnapshot = await getDocs(q);
     const membersInGroup = querySnapshot.docs.map(
-        doc =>doc.data()[modelChannelMembers[1]]
+        doc => doc.data()[modelChannelMembers[1]]
     )
-        
-    
+
+
     const allMembers = await getAllOtherUsers({
-        OwnId:ownId
+        OwnId: ownId
     })
 
     const members = allMembers.filter(
-        (member)=>membersInGroup.includes(member.id)
+        (member) => membersInGroup.includes(member.id)
     )
-    return members 
+    return members
 
 }
 
 export async function getAllGroupMembers({
     groupId
-}){
+}) {
 
-    const q = query(collection(db,'channelMembers'),where(modelChannelMembers[2],'==',groupId))
+    const q = query(collection(db, 'channelMembers'), where(modelChannelMembers[2], '==', groupId))
     const querySnapshot = await getDocs(q);
-    const membersInGroupObj={}
+    const membersInGroupObj = {}
     const membersInGroup = querySnapshot.docs.map(
-        doc =>{
+        doc => {
             membersInGroupObj[doc.data()[modelChannelMembers[1]]] = doc.data()
         }
     )
-        
-    
+
+
     const allMembers = await getAllUsers()
 
     const members = allMembers.filter(
-        (member)=>{
-            if(membersInGroupObj.hasOwnProperty(member[modelUser[0]])){
+        (member) => {
+            if (membersInGroupObj.hasOwnProperty(member[modelUser[0]])) {
                 return true
             }
             return false
@@ -72,9 +86,9 @@ export async function getAllGroupMembers({
     )
 
     const membersFullDetails = members.map(
-        member=>({
+        member => ({
             ...member,
-            [modelChannelMembers[4]]:membersInGroupObj[member[modelUser[0]]][modelChannelMembers[4]]
+            [modelChannelMembers[4]]: membersInGroupObj[member[modelUser[0]]][modelChannelMembers[4]]
         })
     )
 
@@ -83,23 +97,23 @@ export async function getAllGroupMembers({
 }
 export async function getAllGroupMembersObj({
     groupId
-}){
+}) {
 
-    const q = query(collection(db,'channelMembers'),where(modelChannelMembers[2],'==',groupId))
+    const q = query(collection(db, 'channelMembers'), where(modelChannelMembers[2], '==', groupId))
     const querySnapshot = await getDocs(q);
-    const membersInGroupObj={}
+    const membersInGroupObj = {}
     const membersInGroup = querySnapshot.docs.forEach(
-        doc =>{
+        doc => {
             membersInGroupObj[doc.data()[modelChannelMembers[1]]] = doc.data()
         }
     )
-        
-    
+
+
     const allMembers = await getAllUsers()
     const members = {}
     allMembers.forEach(
-        (member)=>{
-            if(membersInGroupObj.hasOwnProperty(member[modelUser[0]])){
+        (member) => {
+            if (membersInGroupObj.hasOwnProperty(member[modelUser[0]])) {
                 membersInGroupObj[member[modelUser[0]]][modelUser[1]] = member[modelUser[1]]
                 membersInGroupObj[member[modelUser[0]]][modelUser[0]] = member[modelUser[0]]
                 membersInGroupObj[member[modelUser[0]]][modelUser[2]] = member[modelUser[2]]
@@ -114,21 +128,21 @@ export async function getAllGroupMembersObj({
 }
 export async function getuserGroupIdsObj({
     userId
-}){
+}) {
 
-    const q = query(collection(db,'channelMembers'),where(modelChannelMembers[1],'==',userId))
+    const q = query(collection(db, 'channelMembers'), where(modelChannelMembers[1], '==', userId))
     const querySnapshot = await getDocs(q);
-    let grpObj={}
+    let grpObj = {}
     querySnapshot.docs.forEach(
         doc => {
             grpObj[doc.data()[modelChannelMembers[2]]] = {
-                [modelChannelMembers[2]]:doc.data()[modelChannelMembers[2]],
-                [modelChannelMembers[3]]:doc.data()[modelChannelMembers[3]],
-                [modelChannelMembers[4]]:doc.data()[modelChannelMembers[4]],
+                [modelChannelMembers[2]]: doc.data()[modelChannelMembers[2]],
+                [modelChannelMembers[3]]: doc.data()[modelChannelMembers[3]],
+                [modelChannelMembers[4]]: doc.data()[modelChannelMembers[4]],
             }
         }
     )
-        
+
     return grpObj
 
 }
